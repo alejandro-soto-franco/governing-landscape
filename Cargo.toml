@@ -8,10 +8,7 @@ edition       = "2024"
 rust-version  = "1.85"
 license       = "MIT"
 repository    = "https://github.com/alejandro-soto-franco/governing-landscape"
-authors       = [
-    "Alejandro Soto Franco <sotofranco.eng@gmail.com>",
-    "Hamza Woodson <hwoodson@stanford.edu>",
-]
+authors       = ["Alejandro Soto Franco <sotofranco.eng@gmail.com>"]
 
 [workspace.dependencies]
 ndarray     = { version = "0.17", features = ["rayon", "serde"] }

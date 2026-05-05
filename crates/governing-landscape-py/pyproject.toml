@@ -10,10 +10,7 @@ readme          = "README.md"
 license         = { text = "MIT" }
 requires-python = ">=3.10"
 keywords        = ["gaussian-splatting", "hypergraph", "governance", "heritage", "reconstruction"]
-authors         = [
-    { name = "Alejandro Soto Franco", email = "sotofranco.eng@gmail.com" },
-    { name = "Hamza Woodson",         email = "hwoodson@stanford.edu" },
-]
+authors         = [{ name = "Alejandro Soto Franco", email = "sotofranco.eng@gmail.com" }]
 classifiers = [
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
