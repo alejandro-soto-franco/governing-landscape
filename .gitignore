@@ -36,13 +36,17 @@ wheels/
 *.abi3.so
 !**/_core.pyi
 
-# Field data (gitignore by default; add specific files explicitly)
-data/
+# Field data: track manifests + READMEs, ignore binaries.
+data/**/raw/
+data/**/processed/
+data/**/sparse/
 *.ply
 *.las
 *.laz
 *.hdf5
 *.h5
+!data/**/manifest.toml
+!data/**/README.md
 
 # OS
 .DS_Store

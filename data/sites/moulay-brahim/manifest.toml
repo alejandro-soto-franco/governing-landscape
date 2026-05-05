@@ -1,0 +1,73 @@
+# Moulay Brahim, Al-Haouz province, Marrakech-Safi region, Morocco.
+# Imagery sources for milestone-1 reconstruction.
+# Curated 2026-05-06; see docs/audits/2026-05-06-site-imagery-audit.md for selection reasoning.
+
+[site]
+name    = "Moulay Brahim"
+country = "Morocco"
+region  = "Al-Haouz, Marrakech-Safi"
+lat     =  31.52
+lon     =  -8.18
+event   = "2023-09-08 Al-Haouz earthquake (Mw 6.8)"
+
+[milestone_1]
+target_subset = "mosque + minaret + main square"
+status        = "selected"
+rationale     = "only candidate with non-trivial pre-quake public-internet imagery + Maxar AOI coverage"
+
+# ── Pre-quake imagery (t0) ───────────────────────────────────────────────────
+
+[[pre_quake]]
+source        = "Wikimedia Commons category"
+url           = "https://commons.wikimedia.org/wiki/Category:Moulay_Brahim"
+license       = "various CC variants per file"
+n_files_total = 26
+description   = "Town, mosque, gorge, mule trails. Pre-2023-09-08 photos plus 11 post-quake. Multi-viewpoint MyPic series of 10 visitor photos."
+
+[[pre_quake]]
+source      = "Sentinel-2 archive (Copernicus)"
+url         = "https://browser.dataspace.copernicus.eu/"
+license     = "Copernicus Open Access"
+description = "10 m optical, multi-revisit. Macro context only, not building-detail."
+
+[[pre_quake]]
+source      = "Maxar commercial archive (2010 to 2013 captures)"
+url         = "https://discover.maxar.com/"
+license     = "commercial, not Open Data"
+description = "Probably exists for Moulay Brahim; flagged for later acquisition if a satellite t0 anchor is needed. Not blocking M1."
+
+# ── Post-quake imagery (t1) ──────────────────────────────────────────────────
+
+[[post_quake]]
+source      = "Maxar Open Data Program, Morocco Earthquake Sept 2023"
+url         = "https://github.com/opengeos/maxar-open-data/blob/master/datasets/Morocco-Earthquake-Sept-2023.tsv"
+license     = "CC-BY-NC-4.0 (Maxar Open Data terms)"
+captured    = "2023-09-10 to 2023-09-11"
+sensor      = "WV-2"
+resolution  = "~0.5 m"
+description = "Tile coverage includes Moulay Brahim AOI."
+
+[[post_quake]]
+source      = "StEER PVRR 2023"
+url         = "https://www.researchgate.net/publication/375163415"
+license     = "academic, manual extraction"
+description = "Moulay Brahim is a canonical case site. Targeted exterior photos of minaret and partial-collapse hotel."
+
+[[post_quake]]
+source      = "Geoengineer.org drone footage"
+url         = "https://www.geoengineer.org/videos/suZ2a6c5k8HG2ifq"
+license     = "manual frame extraction"
+description = "Aerial damage assessment footage of the village."
+
+[[post_quake]]
+source      = "Swiss reconnaissance mission, Sci. Rep. 2025"
+url         = "https://www.nature.com/articles/s41598-025-00659-2"
+license     = "open access (academic)"
+description = "Damage-assessment paper naming Moulay Brahim."
+
+# ── Acquisition status ───────────────────────────────────────────────────────
+
+[acquisition]
+binaries_path = "data/sites/moulay-brahim/raw/"
+status        = "not yet acquired"
+next_step     = "Download the Wikimedia Commons category, curate to a multi-view subset around the mosque and minaret, then run COLMAP / hloc to produce a sparse SfM cloud."
