@@ -1,0 +1,32 @@
+[workspace]
+resolver = "3"
+members  = ["crates/governing-landscape", "crates/governing-landscape-py"]
+
+[workspace.package]
+version       = "0.1.0"
+edition       = "2024"
+rust-version  = "1.85"
+license       = "MIT"
+repository    = "https://github.com/alejandro-soto-franco/governing-landscape"
+authors       = [
+    "Alejandro Soto Franco <sotofranco.eng@gmail.com>",
+    "Hamza Woodson <hwoodson@stanford.edu>",
+]
+
+[workspace.dependencies]
+ndarray     = { version = "0.17", features = ["rayon", "serde"] }
+nalgebra    = { version = "0.33", features = ["serde-serialize"] }
+faer        = "0.22"
+rayon       = "1.10"
+thiserror   = "2"
+rand        = "0.9"
+rand_chacha = "0.9"
+serde       = { version = "1", features = ["derive"] }
+serde_json  = "1"
+pyo3        = { version = "0.28", features = ["extension-module", "abi3-py310"] }
+numpy       = "0.28"
+
+[profile.release]
+lto           = "thin"
+codegen-units = 1
+debug         = "line-tables-only"

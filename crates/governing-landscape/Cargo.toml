@@ -1,0 +1,30 @@
+[package]
+name          = "governing-landscape"
+version       = { workspace = true }
+edition       = { workspace = true }
+rust-version  = { workspace = true }
+license       = { workspace = true }
+repository    = { workspace = true }
+authors       = { workspace = true }
+description   = "Coupled 4D Gaussian splatting and typed governance hypergraphs for heritage landscape reconstruction"
+keywords      = ["gaussian-splatting", "hypergraph", "governance", "heritage"]
+categories    = ["science"]
+readme        = "README.md"
+
+[lib]
+name       = "governing_landscape"
+crate-type = ["rlib"]
+
+[dependencies]
+ndarray     = { workspace = true }
+nalgebra    = { workspace = true }
+faer        = { workspace = true }
+rayon       = { workspace = true }
+thiserror   = { workspace = true }
+rand        = { workspace = true }
+rand_chacha = { workspace = true }
+serde       = { workspace = true }
+
+[dev-dependencies]
+approx     = "0.5"
+serde_json = { workspace = true }

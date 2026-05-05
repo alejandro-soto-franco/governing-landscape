@@ -1,0 +1,46 @@
+[build-system]
+requires      = ["maturin>=1.4,<2"]
+build-backend = "maturin"
+
+[project]
+name            = "governing-landscape"
+version         = "0.1.0"
+description     = "Coupled 4D Gaussian splatting and typed governance hypergraphs for heritage landscape reconstruction"
+readme          = "README.md"
+license         = { text = "MIT" }
+requires-python = ">=3.10"
+keywords        = ["gaussian-splatting", "hypergraph", "governance", "heritage", "reconstruction"]
+authors         = [
+    { name = "Alejandro Soto Franco", email = "sotofranco.eng@gmail.com" },
+    { name = "Hamza Woodson",         email = "hwoodson@stanford.edu" },
+]
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Rust",
+    "Topic :: Scientific/Engineering",
+    "Intended Audience :: Science/Research",
+]
+dependencies = [
+    "numpy>=1.24",
+]
+
+[project.optional-dependencies]
+torch = ["torch>=2.4"]
+
+[project.urls]
+Repository = "https://github.com/alejandro-soto-franco/governing-landscape"
+Paper      = "https://github.com/alejandro-soto-franco/governing-landscape/blob/main/paper/main.pdf"
+
+[tool.maturin]
+python-source = "python"
+module-name   = "governing_landscape._core"
+bindings      = "pyo3"
+features      = ["pyo3/extension-module"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers   = [
+    "integration: tests that require network or external data",
+    "gpu: tests that require CUDA / Vulkan",
+]
