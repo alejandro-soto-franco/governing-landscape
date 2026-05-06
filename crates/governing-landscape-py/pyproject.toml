@@ -23,7 +23,20 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-torch = ["torch>=2.4"]
+# Layer I (4D Gaussian splatting) backend. Pull `splat` once Moulay Brahim
+# imagery is acquired and a CUDA-capable GPU is available.
+splat = [
+    "torch>=2.4",
+    "gsplat>=1.4",
+    "Pillow>=10",
+]
+sfm = [
+    "pycolmap>=3.10",
+]
+dev = [
+    "pytest>=8",
+    "ruff>=0.6",
+]
 
 [project.urls]
 Repository = "https://github.com/alejandro-soto-franco/governing-landscape"
