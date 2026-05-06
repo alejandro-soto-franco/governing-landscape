@@ -82,9 +82,14 @@ total_size_mb   = 23
 licenses        = ["CC BY-SA 3.0 (15)", "CC BY 3.0 (8)", "CC BY-SA 2.0 (1)", "Licence Ouverte (1)", "CC BY-SA 4.0 (1)"]
 manifest        = "$GL_STORAGE_ROOT/sites/moulay-brahim/raw/wikimedia/manifest.json"
 
+[colmap_attempt_2026_05_06]
+status     = "FAILED — see docs/audits/2026-05-06-colmap-on-wikimedia-fails.md"
+reason     = "Wikimedia photos are dispersed establishing shots, not a multi-view set. 10–15k SIFT keypoints per image; exactly 1 of 45 candidate pairs survives geometric verification. SfM cannot bootstrap."
+next_path  = "Synthetic data for Layer I development; Maxar pre-quake commercial archive (Hamza/Stanford) for real reconstruction; on-site drone survey for the paper protocol."
+
 [acquisition.next_steps]
-colmap = "python examples/m1_reconstruct.py --stage colmap --phase pre_quake"
-gsplat = "python examples/m1_reconstruct.py --stage gsplat --phase pre_quake (gated on [splat] extras + CUDA GPU; Hamza's compute)"
-maxar  = "Manual download from https://github.com/opengeos/maxar-open-data Morocco-Earthquake-Sept-2023.tsv → raw/maxar/"
-steer  = "Manual extraction from StEER PVRR PDF → raw/steer/"
-drone  = "Manual frame extraction from Geoengineer footage → raw/drone/"
+synthetic = "Generate a synthetic COLMAP output (hand-placed cameras + sparse cloud) and run gsplat against renders to exercise Layers III + IV end to end without real imagery."
+maxar_pre = "Hamza brokers Stanford institutional access to Maxar's commercial archive for 2010–2013 Moulay Brahim WV-2/WV-3 imagery."
+maxar_post = "Manual download from the Maxar Open Data Program TSV → raw/maxar/. Post-quake satellite is open."
+steer  = "Manual extraction from StEER PVRR PDF → raw/steer/. Useful as a qualitative damage reference even though it does not register in SfM."
+drone  = "Manual frame extraction from Geoengineer footage → raw/drone/."
