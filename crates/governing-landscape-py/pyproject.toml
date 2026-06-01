@@ -54,3 +54,6 @@ markers   = [
     "integration: tests that require network or external data",
     "gpu: tests that require CUDA / Vulkan",
 ]
+
+[tool.pyrefly]
+# Enables full Pyrefly type checking; run with `uvc`. See ~/.claude/rules/pyrefly.md
