@@ -1,0 +1,119 @@
+# Ojúbo Òsogbo, Osun-Osogbo Sacred Grove, Osogbo, Osun State, Nigeria.
+# Reference heritage capture (CyArk / ímísí3D / Open Heritage 3D, DOI 10.26301/wr06-mh92).
+# A second methodological reference dataset alongside great-mosque-kilwa: a dense
+# terrestrial-LiDAR plus aerial- and terrestrial-photogrammetry survey of a UNESCO
+# World Heritage cultural landscape, used to exercise the COLMAP to gsplat pipeline
+# (Layers III and IV) on real survey data.
+# Set up 2026-06-08.
+
+[site]
+name     = "Ojúbo Òsogbo"
+monument = "Ojúbo Òsogbo (shrines and sculptures of the Osun-Osogbo Sacred Grove)"
+country  = "Nigeria"
+region   = "Osogbo, Osun State"
+lat      =  7.7556     # approximate grove centroid; the aerial EXIF GPS is largely null
+lon      =  4.5519
+status   = "UNESCO World Heritage Site (Osun-Osogbo Sacred Grove, inscribed 2005)"
+role     = "methodological reference dataset (not an Al-Haouz earthquake site)"
+
+[dataset]
+title        = "Ojúbo Òsogbo"
+provider     = "CyArk, with ímísí3D"
+distributor  = "Open Heritage 3D"
+doi          = "10.26301/wr06-mh92"
+url          = "https://openheritage3d.org/project/wr06-mh92"
+license      = "CC BY-NC-SA (non-commercial, share-alike; confirm version on the OH3D page)"
+collected    = "terrestrial photogrammetry 2019-08-24 to 2019-09-22, aerial photogrammetry 2019-09-21 to 2019-09-22, LiDAR registered 2019-09-27 (EXIF / E57 timestamps)"
+attribution  = "see attributions.md (required CyArk / ímísí3D 2020 citation)"
+# Open Heritage 3D publishes three components for this DOI. All three are
+# extracted and surveyed below.
+components_published = ["lidar_terrestrial", "photogrammetry_aerial", "photogrammetry_terrestrial"]
+components_local     = ["lidar_terrestrial", "photogrammetry_aerial", "photogrammetry_terrestrial"]
+
+# -- Photogrammetry, aerial (multi-view imagery; surveyed) ---------------------
+
+[photogrammetry_aerial]
+n_photos        = 1010
+camera_exif     = "DJI FC6310 (Phantom 4 Pro camera)"
+resolution_px   = [5464, 3640]
+captured        = "2019-09-21 22:06 to 2019-09-22 22:05 (EXIF DateTimeOriginal)"
+size_bytes      = 13472558882
+geotag          = "810 / 1010 geotagged; 200 photos carry a null (0,0) GPS tag"
+# Three aerial blocks by filename prefix (AOR = aerial oblique run, OH3D naming):
+blocks = [
+  { id = "AOR_01", n = 319, kind = "aerial oblique run" },
+  { id = "AOR_02", n = 33,  kind = "aerial oblique run" },
+  { id = "AOR_03", n = 658, kind = "aerial oblique run" },
+]
+
+# -- LiDAR, terrestrial (geometry ground truth; surveyed) ---------------------
+
+[lidar_terrestrial]
+file        = "OSU_Ojubo_Osogbo_Cyclone.e57"
+format      = "ASTM E57 v1.0"
+sensor      = "terrestrial laser scanner, registered in Leica Cyclone (per-point RGB present; exact scanner model per the OH3D project page)"
+size_bytes  = 52266607616
+source_zip  = "wr06-mh92_lidar_terrestrial.zip"
+zip_bytes   = 21566876375            # 20.09 GiB published zip
+n_scans     = 82
+n_points    = 2312404068
+per_scan_points = "~28.2 M (min 27,809,892, max 28,220,124)"
+point_fields    = ["cartesianX", "cartesianY", "cartesianZ", "intensity", "colorRed", "colorGreen", "colorBlue", "rowIndex", "columnIndex", "cartesianInvalidState"]
+colour          = true                  # per-point RGB present (Kilwa's Faro scan is intensity-only)
+registered      = true                  # scans share one local frame
+extent_scan0_m  = { x = 148.6, y = 161.3, z = 41.6 }   # scan-0 local bounds, metres; other scans similar
+guid            = "{52C8131B-AA67-4731-8A33-B628CDDE6054}"
+creation_time   = "~2019-09-27 22:50 UTC (E57 GPS-time stamp)"
+
+# -- Photogrammetry, terrestrial (multi-view imagery; surveyed) ---------------
+
+[photogrammetry_terrestrial]
+n_photos        = 2793
+camera_exif     = "Nikon D5600 (1187) and Fujifilm X-T2 (1606)"
+resolution_px   = [6000, 4000]          # 24 MP; 3 frames are 4000 x 6000 (portrait)
+size_bytes      = 32613307325
+source_zip      = "wr06-mh92_photogrammetry_terrestrial.zip"
+captured        = "2019-08-24 to 2019-09-22 (EXIF DateTimeOriginal)"
+geotag          = "0 / 2793 geotagged (terrestrial; scale and georeference lean on the LiDAR)"
+# Ten terrestrial runs by filename prefix: PEX = exterior, PIN = interior.
+blocks = [
+  { id = "PEX_01", n = 100, kind = "terrestrial exterior run" },
+  { id = "PEX_02", n = 45,  kind = "terrestrial exterior run" },
+  { id = "PEX_03", n = 354, kind = "terrestrial exterior run" },
+  { id = "PEX_04", n = 176, kind = "terrestrial exterior run" },
+  { id = "PEX_05", n = 82,  kind = "terrestrial exterior run" },
+  { id = "PIN_01", n = 28,  kind = "terrestrial interior run" },
+  { id = "PIN_02", n = 303, kind = "terrestrial interior run" },
+  { id = "PIN_03", n = 628, kind = "terrestrial interior run" },
+  { id = "PIN_04", n = 272, kind = "terrestrial interior run" },
+  { id = "PIN_05", n = 805, kind = "terrestrial interior run" },
+]
+
+# -- Acquisition + storage ----------------------------------------------------
+
+[acquisition]
+storage_root  = "$GL_STORAGE_ROOT/sites/ojubo-osogbo"
+default_root  = "/mnt/ASF-EX2/governing-landscape/sites/ojubo-osogbo"
+status        = "all three components extracted and surveyed"
+extracted_at  = "2026-06-09"
+source_zips   = [
+  "wr06-mh92_photogrammetry_aerial.zip",
+  "wr06-mh92_lidar_terrestrial.zip",
+  "wr06-mh92_photogrammetry_terrestrial.zip",
+]
+layout        = "raw/photogrammetry_aerial/, raw/lidar_terrestrial/, raw/photogrammetry_terrestrial/"
+
+[acquisition.integrity]
+# All three zips extracted faithfully. 7z validated entry CRCs on extraction
+# (Zip64 archives; Info-ZIP unzip 6.00 cannot read them, 7z handles them).
+# The aerial zip: 1010 JPGs, 13,472,558,882 bytes on disk.
+photogrammetry_aerial      = "intact (1010 JPGs, EXIF readable; extracted size matches the published zip)"
+# The e57 reads cleanly through pye57 (page-aware): 82 scans, 2.31 G points,
+# typed E57 root (formatName / guid / creationDateTime / data3D) all parse.
+lidar_terrestrial          = "intact (e57 52,266,607,616 bytes; pye57 reads 82 scans / 2,312,404,068 points with per-point RGB)"
+# The terrestrial photo zip: 2793 files, 32,613,307,325 bytes, EXIF readable.
+photogrammetry_terrestrial = "intact (2793 JPGs, EXIF readable across both cameras)"
+
+[next_steps]
+colmap  = "Run the examples/m1_reconstruct.py COLMAP stage on raw/photogrammetry_aerial (dense oblique overlap should bootstrap SfM). Needs the manifest.json adapter noted in great-mosque-kilwa. The terrestrial PEX/PIN runs add exterior and interior coverage for a fuller reconstruction."
+gsplat  = "Initialise a 3D-GS scene from the COLMAP sparse cloud; use the terrestrial LiDAR as geometry ground truth for scale and registration."

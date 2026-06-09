@@ -1,0 +1,122 @@
+# Great Mosque, Kilwa Kisiwani, Tanzania.
+# Reference heritage capture (CyArk / Open Heritage 3D, DOI 10.26301/bfzm-v295).
+# Not a quake site: this is a dense, well-overlapping terrestrial-LiDAR plus
+# aerial-photogrammetry survey, used to exercise the COLMAP to gsplat pipeline
+# (Layers III and IV) on real data where the Moulay Brahim Wikimedia set could
+# not (see docs/audits/2026-05-06-colmap-on-wikimedia-fails.md).
+# Set up 2026-06-06.
+
+[site]
+name     = "Great Mosque, Kilwa Kisiwani"
+monument = "Great Mosque (Friday Mosque), Kilwa Kisiwani"
+country  = "Tanzania"
+region   = "Kilwa District, Lindi Region"
+lat      = -8.959007
+lon      =  39.498206
+status   = "UNESCO World Heritage Site (Ruins of Kilwa Kisiwani and Songo Mnara)"
+role     = "methodological reference dataset (not an Al-Haouz earthquake site)"
+
+[dataset]
+title        = "Great Mosque - Kilwa Kisiwani"
+provider     = "CyArk, with Google Arts and Culture, ICOMOS, and Tanzania Ministry of Natural Resources and Tourism"
+distributor  = "Open Heritage 3D"
+doi          = "10.26301/bfzm-v295"
+url          = "https://openheritage3d.org/project/bfzm-v295"
+license      = "CC BY-NC-SA (non-commercial, share-alike; confirm version on the OH3D page)"
+collected    = "2018-12-11 to 2018-12-19"
+attribution  = "see attributions.md (required CyArk 2020 citation)"
+# Open Heritage 3D publishes three components for this DOI. All three are set up.
+components_published = ["lidar_terrestrial", "photogrammetry_terrestrial", "photogrammetry_aerial"]
+components_local     = ["lidar_terrestrial", "photogrammetry_aerial", "photogrammetry_terrestrial"]
+
+# -- LiDAR, terrestrial (t0 geometry ground truth) ----------------------------
+
+[lidar_terrestrial]
+file        = "GRM_Great_Mosque_2018_12.e57"
+format      = "ASTM E57 v1.0"
+sensor      = "Faro Focus S350 (terrestrial laser scanner)"
+size_bytes  = 13316911104
+n_scans     = 61
+n_points    = 673191640
+per_scan_points = "~11.03 M (min 11,028,512, max 11,045,584)"
+point_fields    = ["cartesianX", "cartesianY", "cartesianZ", "intensity", "rowIndex", "columnIndex"]
+colour          = false                 # intensity only; no per-point RGB in the e57
+registered      = true                  # 62 pose blocks; scans share one local frame
+extent_local_m  = { x = 274.4, y = 278.9, z = 20.1 }   # local scanner frame, metres
+guid            = "{D9730668-8C06-4869-BA83-37946DA54537}"
+creation_time   = "~2018-12-21 (E57 GPS-time stamp)"
+
+# -- Photogrammetry, aerial (t0 multi-view imagery) ---------------------------
+
+[photogrammetry_aerial]
+n_photos        = 410
+camera_exif     = "DJI FC2103 (Phantom 4 Pro camera)"   # OH3D page labels it "DJI Mavic Pro"
+resolution_px   = [4056, 3040]
+geotagged       = "410 / 410 (all photos)"
+captured        = "2018-12-18 10:30 to 10:52 (local)"
+footprint_m     = { ew = 91, ns = 93 }   # tight orbit over the mosque
+rel_altitude_m  = "~21 (barometric, near-constant)"
+# Flight blocks by filename prefix:
+blocks = [
+  { id = "GTM_AGR_01", n = 89, kind = "nadir grid strip" },
+  { id = "GTM_AGR_02", n = 89, kind = "nadir grid strip" },
+  { id = "GTM_AGR_03", n = 26, kind = "nadir grid strip" },
+  { id = "GTM_AGR_04", n = 46, kind = "nadir grid strip" },
+  { id = "GTM_AGR_05", n = 75, kind = "nadir grid strip" },
+  { id = "GTM_AOR_01", n = 85, kind = "oblique orbit" },
+]
+
+# -- Photogrammetry, terrestrial (ground-level multi-view imagery) -------------
+
+[photogrammetry_terrestrial]
+n_files         = 1532                   # 1529 JPGs + 2 MOV clips + 1 AAE sidecar
+n_photos        = 1529
+camera_exif     = "Apple iPhone X (1126, geotagged) and Nikon D810 (405)"
+resolution_px   = { iphone_x = [4032, 3024], nikon_d810 = [7360, 4912] }
+size_bytes      = 15507053868
+source_zip      = "bfzm-v295_photogrammetry_terrestrial.zip"
+captured        = "2018-12-17 (single day, 13:01 to 15:11 local)"
+geotag          = "1126 / 1529 geotagged (the iPhone X frames)"
+extras          = "GTM_PIN_03_{818,819}.MOV (2 video clips) + GTM_PIN_03_817.AAE (1 Apple edit sidecar)"
+# Seven terrestrial runs by filename prefix: PEX = exterior, PIN = interior.
+blocks = [
+  { id = "GTM_PEX_01", n = 134,  kind = "terrestrial exterior run" },
+  { id = "GTM_PEX_02", n = 39,   kind = "terrestrial exterior run" },
+  { id = "GTM_PEX_03", n = 69,   kind = "terrestrial exterior run" },
+  { id = "GTM_PEX_04", n = 5,    kind = "terrestrial exterior run" },
+  { id = "GTM_PIN_01", n = 74,   kind = "terrestrial interior run" },
+  { id = "GTM_PIN_02", n = 84,   kind = "terrestrial interior run" },
+  { id = "GTM_PIN_03", n = 1124, kind = "terrestrial interior run (also holds the 2 MOV + 1 AAE)" },
+]
+
+# -- Acquisition + storage ----------------------------------------------------
+
+[acquisition]
+storage_root  = "$GL_STORAGE_ROOT/sites/great-mosque-kilwa"
+default_root  = "/mnt/ASF-EX2/governing-landscape/sites/great-mosque-kilwa"
+status        = "all three components extracted and surveyed"
+extracted_at  = "2026-06-06 (lidar + aerial), 2026-06-09 (terrestrial photogrammetry)"
+source_zips   = ["bfzm-v295_lidar_terrestrial.zip", "bfzm-v295_photogrammetry_aerial.zip", "bfzm-v295_photogrammetry_terrestrial.zip"]
+layout        = "raw/lidar_terrestrial/, raw/photogrammetry_aerial/, raw/photogrammetry_terrestrial/"
+
+[acquisition.integrity]
+# unzip exited 0 on the lidar + aerial archives (CRC-32 validated). The
+# terrestrial photogrammetry zip is Zip64 (Info-ZIP unzip 6.00 cannot read it);
+# 7z validated its entry CRCs on extraction, 1532 files, 15,507,053,868 bytes.
+zip_crc           = "passed (unzip exit 0 on lidar + aerial; 7z CRC-validated the Zip64 terrestrial zip)"
+photogrammetry    = "intact (410/410 aerial JPGs + 1529 terrestrial JPGs, EXIF readable)"
+# The e57 is bit-intact: 8/8 sampled E57 page CRC-32C checks pass across the
+# full 12.4 GiB (header, binary point regions, XML tail), and the XML parses
+# strictly as e57Root with all 124 fileOffsets numeric.
+e57               = "bit-intact (E57 page CRC-32C verified; XML well-formed)"
+# READ GOTCHA: E57 stores data in 1024-byte physical pages (1020 payload bytes
+# + a 4-byte big-endian CRC-32C). The XML and binary offsets are PHYSICAL.
+# Reading the XML region as one flat block sweeps up the per-page CRC bytes,
+# which look like ~0.19% scattered "corruption" (they sit only at page offsets
+# 1020 to 1023). Read page-aware (skip 4 bytes every 1024) or use a real E57
+# reader (pye57 / libE57Format), which handle pages and CRCs correctly.
+
+[next_steps]
+colmap  = "Run examples/m1_reconstruct.py COLMAP stage on raw/photogrammetry_aerial (dense overlap; SfM should bootstrap where the Wikimedia set failed). Needs a manifest.json adapter: the reconstruct script currently reads raw/wikimedia/manifest.json with per-image phase tags."
+gsplat  = "Initialise a 3D-GS scene from the COLMAP sparse cloud; use the e57 as geometry ground truth for scale and registration checks."
+e57     = "Load directly with pye57 / libE57Format (file is bit-intact; no repair needed). The terrestrial photogrammetry component is now local (raw/photogrammetry_terrestrial/) and can supply colour where the intensity-only e57 does not."
