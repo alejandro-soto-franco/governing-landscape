@@ -33,6 +33,9 @@ splat = [
 sfm = [
     "pycolmap>=3.10",
 ]
+lidar = [
+    "pye57>=0.4",
+]
 dev = [
     "pytest>=8",
     "ruff>=0.6",
