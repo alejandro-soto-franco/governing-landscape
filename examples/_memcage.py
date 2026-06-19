@@ -131,23 +131,34 @@ def build_caged_argv(
 # Pre-flight check
 # ---------------------------------------------------------------------------
 
-def preflight(exclusive: bool) -> None:
+def preflight(exclusive: bool, min_free_gib: float | None = None) -> None:
     """Print the chosen budget and abort if available RAM is insufficient.
 
+    The cage's ``MemoryMax`` (16/24 GiB) is a *ceiling*, not a reservation. By
+    default the start gate requires the full tier floor free, so a job never
+    forces other processes into swap. On a chronically busy box that makes small
+    validation jobs impossible to start; ``min_free_gib`` is a conscious operator
+    override that lowers ONLY the start gate — the MemoryMax ceiling and the
+    MemorySwapMax clean-kill protection are unchanged.
+
     Args:
-        exclusive: Selects which budget tier to use.
+        exclusive:    Selects which budget tier to use.
+        min_free_gib: If given, the start-gate floor in GiB; otherwise the tier's
+                      full required floor (16 default / 24 exclusive).
 
     Raises:
-        SystemExit: if available RAM is below the tier's required floor.
+        SystemExit: if available RAM is below the effective floor.
     """
     budget = cage_budget(exclusive)
     tier_name = "exclusive" if exclusive else "default"
-    required: float = float(budget["required_gib"])
+    tier_floor: float = float(budget["required_gib"])
+    required = tier_floor if min_free_gib is None else float(min_free_gib)
+    override = "" if min_free_gib is None else "  (operator min-free override)"
 
     print(
         f"[memcage] budget tier={tier_name}  "
         f"MemoryMax={budget['max']}  MemoryHigh={budget['high']}  "
-        f"MemorySwapMax={budget['swap_max']}  required_floor={required:.0f} GiB"
+        f"MemorySwapMax={budget['swap_max']}  start_floor={required:.0f} GiB{override}"
     )
 
     available = mem_available_gib()
@@ -161,7 +172,8 @@ def preflight(exclusive: bool) -> None:
             f"    • Free RAM (close browsers, IDEs, large builds)\n"
             f"    • Reconstruct a smaller image subset / single block\n"
             f"    • Pause a concurrent big build (cargo, etc.) and retry\n"
-            f"    • If running --exclusive, drop to the default (16 GiB) tier"
+            f"    • For a small/validation block on a busy box, lower the start "
+            f"gate with --min-free-gib N (ceiling + swap cap still apply)"
         )
 
 
@@ -169,7 +181,9 @@ def preflight(exclusive: bool) -> None:
 # Re-exec into the cage
 # ---------------------------------------------------------------------------
 
-def reexec_caged_if_needed(exclusive: bool, *, label: str) -> None:
+def reexec_caged_if_needed(
+    exclusive: bool, *, label: str, min_free_gib: float | None = None
+) -> None:
     """Re-exec the current process inside a cgroup-v2 memory cage if not already caged.
 
     No-op when the :data:`GL_CAGED_ENV` sentinel is already set in the
@@ -182,8 +196,10 @@ def reexec_caged_if_needed(exclusive: bool, *, label: str) -> None:
     new child process.
 
     Args:
-        exclusive: Selects which budget tier to use.
-        label:     Passed through to :func:`build_caged_argv` as the scope description.
+        exclusive:    Selects which budget tier to use.
+        label:        Passed through to :func:`build_caged_argv` as the scope description.
+        min_free_gib: Conscious operator override for the preflight start gate
+                      (see :func:`preflight`); ``None`` keeps the strict tier floor.
     """
     if os.environ.get(GL_CAGED_ENV):
         # Already inside the cage — nothing to do.
@@ -199,7 +215,7 @@ def reexec_caged_if_needed(exclusive: bool, *, label: str) -> None:
             "systemd-based host."
         )
 
-    preflight(exclusive)
+    preflight(exclusive, min_free_gib)
 
     budget = cage_budget(exclusive)
     inner_argv: list[str] = [sys.executable, *sys.argv]

@@ -155,37 +155,43 @@ def run_match(db_path: Path, matcher: str, device) -> None:
         sys.exit(f"unknown matcher {matcher!r}")
 
 
-def build_sift_options(max_image_size: int, max_num_features: int):
-    """Construct pycolmap SIFT extraction options with the requested caps.
+def build_extraction_options(
+    max_image_size: int, max_num_features: int, num_threads: int
+):
+    """Construct pycolmap feature-extraction options with the requested caps.
 
     Returns ``None`` if the installed pycolmap does not expose the expected
     options type, so the caller can fall back to the library defaults rather
     than crash the existing extraction path.
 
-    NOTE: pycolmap 4.x exposes SIFT caps via ``pycolmap.SiftExtractionOptions``
-    with ``max_image_size`` / ``max_num_features`` fields, passed to
-    ``extract_features`` as the ``sift_options=`` keyword. This is the assumed
-    API — verify against the installed pycolmap on the reconstruction hardware
-    (pycolmap is not installed in this dev env, so it could not be probed).
+    Verified against pycolmap 4.0.4 (2026-06-19, by introspection):
+      * ``extract_features(...)`` takes ``extraction_options=`` — a
+        ``pycolmap.FeatureExtractionOptions`` — NOT ``sift_options=``.
+      * ``max_image_size`` and ``num_threads`` live on
+        ``FeatureExtractionOptions`` (top level).
+      * ``max_num_features`` lives on its nested ``.sift``
+        (``SiftExtractionOptions``), which is writable by reference.
+    ``num_threads`` defaults to -1 (all cores) in pycolmap, which is a RAM
+    multiplier during extraction; cap it as a memory guard.
     """
     import pycolmap  # type: ignore[import-not-found]
 
-    opts_cls = getattr(pycolmap, "SiftExtractionOptions", None)
+    opts_cls = getattr(pycolmap, "FeatureExtractionOptions", None)
     if opts_cls is None:
         print(
-            "  ! pycolmap.SiftExtractionOptions unavailable; "
-            "using library default SIFT caps",
+            "  ! pycolmap.FeatureExtractionOptions unavailable; "
+            "using library default extraction caps",
             file=sys.stderr,
         )
         return None
     opts = opts_cls()
     try:
         opts.max_image_size = max_image_size
-        opts.max_num_features = max_num_features
+        opts.num_threads = num_threads
+        opts.sift.max_num_features = max_num_features  # nested, writable by ref
     except (AttributeError, TypeError) as exc:  # pragma: no cover - API drift guard
         print(
-            f"  ! could not set SIFT caps on {opts_cls.__name__}: {exc}; "
-            "using library defaults",
+            f"  ! could not set extraction caps ({exc}); using library defaults",
             file=sys.stderr,
         )
         return None
@@ -203,6 +209,7 @@ def run_colmap(
     device_name: str,
     max_image_size: int,
     max_num_features: int,
+    num_threads: int,
 ) -> Path:
     try:
         import pycolmap  # type: ignore[import-not-found]
@@ -223,12 +230,15 @@ def run_colmap(
 
     print(
         f"colmap: extracting features from {images} (device={device_name}, "
-        f"max_image_size={max_image_size}, max_num_features={max_num_features})"
+        f"max_image_size={max_image_size}, max_num_features={max_num_features}, "
+        f"num_threads={num_threads})"
     )
-    sift_options = build_sift_options(max_image_size, max_num_features)
-    if sift_options is not None:
+    extraction_options = build_extraction_options(
+        max_image_size, max_num_features, num_threads
+    )
+    if extraction_options is not None:
         pycolmap.extract_features(
-            db_path, images, device=device, sift_options=sift_options
+            db_path, images, extraction_options=extraction_options, device=device
         )
     else:
         pycolmap.extract_features(db_path, images, device=device)
@@ -350,6 +360,21 @@ def main() -> None:
         default=8192,
         help="SIFT: maximum number of features per image (default 8192)",
     )
+    ap.add_argument(
+        "--num-threads",
+        type=int,
+        default=8,
+        help="SIFT: extraction worker threads (default 8; pycolmap's -1 = all "
+        "cores is a RAM multiplier on this 32-core box). Use -1 for all cores.",
+    )
+    ap.add_argument(
+        "--min-free-gib",
+        type=float,
+        default=None,
+        help="conscious override of the cage preflight start gate (GiB). Default "
+        "requires the full tier floor (16/24 GiB) free; lower it to run a small "
+        "block on a busy box. The MemoryMax ceiling + swap cap still apply.",
+    )
     args = ap.parse_args()
 
     source = args.source or detect_source(args.root, args.site)
@@ -363,7 +388,9 @@ def main() -> None:
         if args.cage:
             bucket = args.phase or args.subset or "all"
             _memcage.reexec_caged_if_needed(
-                args.exclusive, label=f"colmap:{args.site}:{bucket}"
+                args.exclusive,
+                label=f"colmap:{args.site}:{bucket}",
+                min_free_gib=args.min_free_gib,
             )
         run_colmap(
             args.root,
@@ -375,6 +402,7 @@ def main() -> None:
             device_name=args.device,
             max_image_size=args.max_image_size,
             max_num_features=args.max_num_features,
+            num_threads=args.num_threads,
         )
     elif args.stage == "gsplat":
         bucket = args.phase or args.subset or "all"

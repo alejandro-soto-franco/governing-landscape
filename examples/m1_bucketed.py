@@ -138,11 +138,18 @@ def build_subprocess_argv(
     matcher: str,
     max_image_size: int,
     max_num_features: int,
+    num_threads: int,
     exclusive: bool,
     root: Path,
+    min_free_gib: float | None = None,
 ) -> list[str]:
+    # Invoke m1_reconstruct.py with THIS interpreter (sys.executable) and an
+    # absolute path, NOT `uv run python …`. That propagates the orchestrator's
+    # own environment (e.g. the venv that has pycolmap) to the per-block child
+    # AND keeps it consistent with _memcage's `[sys.executable, *sys.argv]`
+    # cage re-exec; a fresh `uv run` would resolve an env without pycolmap.
     argv = [
-        "uv", "run", "python", "examples/m1_reconstruct.py",
+        sys.executable, str(_HERE / "m1_reconstruct.py"),
         "--stage", "colmap",
         "--site", site,
         "--source", source,
@@ -150,10 +157,13 @@ def build_subprocess_argv(
         "--matcher", matcher,
         "--max-image-size", str(max_image_size),
         "--max-num-features", str(max_num_features),
+        "--num-threads", str(num_threads),
         "--root", str(root),
     ]
     if exclusive:
         argv.append("--exclusive")
+    if min_free_gib is not None:
+        argv += ["--min-free-gib", str(min_free_gib)]
     return argv
 
 
@@ -165,8 +175,10 @@ def run_block(
     matcher: str,
     max_image_size: int,
     max_num_features: int,
+    num_threads: int,
     exclusive: bool,
     root: Path,
+    min_free_gib: float | None = None,
 ) -> dict[str, object]:
     """Run one block as a self-caging subprocess; return its status record."""
     argv = build_subprocess_argv(
@@ -176,8 +188,10 @@ def run_block(
         matcher=matcher,
         max_image_size=max_image_size,
         max_num_features=max_num_features,
+        num_threads=num_threads,
         exclusive=exclusive,
         root=root,
+        min_free_gib=min_free_gib,
     )
     print(f"\n=== block {block}: {' '.join(argv)}")
     proc = subprocess.run(  # noqa: S603 — fixed argv, no shell
@@ -247,6 +261,11 @@ def main() -> None:
     )
     ap.add_argument("--max-image-size", type=int, default=3200)
     ap.add_argument("--max-num-features", type=int, default=8192)
+    ap.add_argument("--num-threads", type=int, default=8,
+                    help="SIFT extraction threads per block (default 8; -1 = all cores)")
+    ap.add_argument("--min-free-gib", type=float, default=None,
+                    help="conscious override of each block's cage preflight start gate "
+                         "(GiB); for small/validation blocks on a busy box")
     ap.add_argument("--root", type=Path, default=default_storage_root())
     ap.add_argument(
         "--force",
@@ -306,8 +325,10 @@ def main() -> None:
                 matcher=args.matcher,
                 max_image_size=args.max_image_size,
                 max_num_features=args.max_num_features,
+                num_threads=args.num_threads,
                 exclusive=args.exclusive,
                 root=args.root,
+                min_free_gib=args.min_free_gib,
             )
             status[block] = record
             # Checkpoint after EACH block so a crash/OOM preserves prior progress.
