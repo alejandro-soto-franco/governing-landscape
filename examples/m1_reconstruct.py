@@ -44,6 +44,15 @@ import shutil
 import sys
 from pathlib import Path
 
+# Robust import of the sibling _memcage module whether this file is run as a
+# script (``python examples/m1_reconstruct.py``) or imported as part of a
+# package. When run as a script the script's own directory is on sys.path[0],
+# but be defensive and ensure it is present.
+_HERE = Path(__file__).resolve().parent
+if str(_HERE) not in sys.path:
+    sys.path.insert(0, str(_HERE))
+import _memcage  # type: ignore[import-not-found]  # noqa: E402 — stdlib-only sibling
+
 IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".tif", ".tiff"}
 
 
@@ -121,7 +130,7 @@ def stage_image_dir(
 
 
 def resolve_device(name: str):
-    import pycolmap
+    import pycolmap  # type: ignore[import-not-found]
 
     return {
         "auto": pycolmap.Device.auto,
@@ -131,7 +140,7 @@ def resolve_device(name: str):
 
 
 def run_match(db_path: Path, matcher: str, device) -> None:
-    import pycolmap
+    import pycolmap  # type: ignore[import-not-found]
 
     if matcher == "exhaustive":
         print("colmap: matching features (exhaustive)")
@@ -146,6 +155,43 @@ def run_match(db_path: Path, matcher: str, device) -> None:
         sys.exit(f"unknown matcher {matcher!r}")
 
 
+def build_sift_options(max_image_size: int, max_num_features: int):
+    """Construct pycolmap SIFT extraction options with the requested caps.
+
+    Returns ``None`` if the installed pycolmap does not expose the expected
+    options type, so the caller can fall back to the library defaults rather
+    than crash the existing extraction path.
+
+    NOTE: pycolmap 4.x exposes SIFT caps via ``pycolmap.SiftExtractionOptions``
+    with ``max_image_size`` / ``max_num_features`` fields, passed to
+    ``extract_features`` as the ``sift_options=`` keyword. This is the assumed
+    API — verify against the installed pycolmap on the reconstruction hardware
+    (pycolmap is not installed in this dev env, so it could not be probed).
+    """
+    import pycolmap  # type: ignore[import-not-found]
+
+    opts_cls = getattr(pycolmap, "SiftExtractionOptions", None)
+    if opts_cls is None:
+        print(
+            "  ! pycolmap.SiftExtractionOptions unavailable; "
+            "using library default SIFT caps",
+            file=sys.stderr,
+        )
+        return None
+    opts = opts_cls()
+    try:
+        opts.max_image_size = max_image_size
+        opts.max_num_features = max_num_features
+    except (AttributeError, TypeError) as exc:  # pragma: no cover - API drift guard
+        print(
+            f"  ! could not set SIFT caps on {opts_cls.__name__}: {exc}; "
+            "using library defaults",
+            file=sys.stderr,
+        )
+        return None
+    return opts
+
+
 def run_colmap(
     root: Path,
     site: str,
@@ -155,9 +201,11 @@ def run_colmap(
     subset: str | None,
     matcher: str,
     device_name: str,
+    max_image_size: int,
+    max_num_features: int,
 ) -> Path:
     try:
-        import pycolmap
+        import pycolmap  # type: ignore[import-not-found]
     except ImportError:
         sys.exit("pycolmap not installed. Run: uv pip install 'governing-landscape[sfm]'")
 
@@ -173,8 +221,17 @@ def run_colmap(
         shutil.rmtree(sparse_dir)
     sparse_dir.mkdir(parents=True)
 
-    print(f"colmap: extracting features from {images} (device={device_name})")
-    pycolmap.extract_features(db_path, images, device=device)
+    print(
+        f"colmap: extracting features from {images} (device={device_name}, "
+        f"max_image_size={max_image_size}, max_num_features={max_num_features})"
+    )
+    sift_options = build_sift_options(max_image_size, max_num_features)
+    if sift_options is not None:
+        pycolmap.extract_features(
+            db_path, images, device=device, sift_options=sift_options
+        )
+    else:
+        pycolmap.extract_features(db_path, images, device=device)
     run_match(db_path, matcher, device)
     print("colmap: incremental mapping")
     maps = pycolmap.incremental_mapping(db_path, images, sparse_dir)
@@ -196,8 +253,8 @@ def run_colmap(
 
 def run_gsplat(root: Path, site: str, bucket: str, n_iters: int) -> Path:
     try:
-        import torch
-        import gsplat  # noqa: F401
+        import torch  # type: ignore[import-not-found]
+        import gsplat  # type: ignore[import-not-found]  # noqa: F401
     except ImportError:
         sys.exit(
             "torch / gsplat not installed. "
@@ -269,12 +326,45 @@ def main() -> None:
     )
     ap.add_argument("--n-iters", type=int, default=1000, help="gsplat training iterations")
     ap.add_argument("--root", type=Path, default=default_storage_root())
+    ap.add_argument(
+        "--cage",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="run the COLMAP stage inside a systemd-run memory cage (default: on). "
+        "Use --no-cage to disable (e.g. when already caged externally).",
+    )
+    ap.add_argument(
+        "--exclusive",
+        action="store_true",
+        help="use the exclusive (24 GiB) cage tier instead of the default 16 GiB co-tenant tier",
+    )
+    ap.add_argument(
+        "--max-image-size",
+        type=int,
+        default=3200,
+        help="SIFT: downscale images so the larger side is at most this many px (default 3200)",
+    )
+    ap.add_argument(
+        "--max-num-features",
+        type=int,
+        default=8192,
+        help="SIFT: maximum number of features per image (default 8192)",
+    )
     args = ap.parse_args()
 
     source = args.source or detect_source(args.root, args.site)
     matcher = args.matcher or ("exhaustive" if source == "wikimedia" else "sequential")
 
     if args.stage == "colmap":
+        # Cage the COLMAP stage (pycolmap runs in-process) by re-exec'ing the
+        # whole process under a cgroup-v2 scope BEFORE importing/using pycolmap.
+        # This call never returns on success (the cage child takes over); when
+        # already caged (GL_CAGED set) it is a no-op and we fall through.
+        if args.cage:
+            bucket = args.phase or args.subset or "all"
+            _memcage.reexec_caged_if_needed(
+                args.exclusive, label=f"colmap:{args.site}:{bucket}"
+            )
         run_colmap(
             args.root,
             args.site,
@@ -283,6 +373,8 @@ def main() -> None:
             subset=args.subset,
             matcher=matcher,
             device_name=args.device,
+            max_image_size=args.max_image_size,
+            max_num_features=args.max_num_features,
         )
     elif args.stage == "gsplat":
         bucket = args.phase or args.subset or "all"

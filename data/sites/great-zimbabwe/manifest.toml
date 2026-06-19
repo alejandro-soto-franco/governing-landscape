@@ -1,0 +1,26 @@
+# Great Zimbabwe, Zimbabwe.
+# Reconstruction target — data not yet acquired.
+# This is a placeholder site record awaiting data acquisition from the Zamani
+# Project, Open Heritage 3D, or similar heritage documentation sources.
+# Placeholder set up 2026-06-19.
+
+[site]
+name     = "Great Zimbabwe"
+monument = "Great Zimbabwe National Monument (Great Enclosure and Hill Complex)"
+country  = "Zimbabwe"
+region   = "Masvingo Province"
+lat      = -20.2674
+lon      = 30.9336
+status   = "UNESCO World Heritage Site (Great Zimbabwe National Monument)"
+role     = "reconstruction target — data not yet acquired"
+
+[dataset]
+title       = "Great Zimbabwe (placeholder)"
+status      = "awaiting data acquisition"
+note        = "No imagery, LiDAR, or survey data staged yet. Candidate sources under investigation."
+
+[acquisition]
+storage_root  = "$GL_STORAGE_ROOT/sites/great-zimbabwe"
+default_root  = "/mnt/ASF-EX2/governing-landscape/sites/great-zimbabwe"
+status        = "not yet acquired"
+note          = "Awaiting license confirmation and data download from candidate sources (Zamani Project, Open Heritage 3D, CyArk)."
