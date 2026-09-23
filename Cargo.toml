@@ -13,12 +13,8 @@ authors       = ["Alejandro Soto Franco <sotofranco.eng@gmail.com>"]
 [workspace.dependencies]
 ndarray     = { version = "0.17", features = ["rayon", "serde"] }
 nalgebra    = { version = "0.33", features = ["serde-serialize"] }
-faer        = "0.22"
 rayon       = "1.10"
 thiserror   = "2"
-rand        = "0.9"
-rand_chacha = "0.9"
-serde       = { version = "1", features = ["derive"] }
 serde_json  = "1"
 pyo3        = { version = "0.28", features = ["extension-module", "abi3-py310"] }
 numpy       = "0.28"

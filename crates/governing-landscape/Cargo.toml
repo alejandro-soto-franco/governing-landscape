@@ -16,14 +16,9 @@ name       = "governing_landscape"
 crate-type = ["rlib"]
 
 [dependencies]
-ndarray     = { workspace = true }
 nalgebra    = { workspace = true }
-faer        = { workspace = true }
 rayon       = { workspace = true }
 thiserror   = { workspace = true }
-rand        = { workspace = true }
-rand_chacha = { workspace = true }
-serde       = { workspace = true }
 
 [dev-dependencies]
 approx     = "0.5"
