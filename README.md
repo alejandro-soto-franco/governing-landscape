@@ -6,7 +6,7 @@ Alejandro Soto Franco (Holonomy Securities) · Hamza Woodson (Jonathan Payne Lab
 
 ---
 
-## What this is
+## Overview
 
 A mathematics white paper formalising a layered framework for governance-aware generative reconstruction of High Atlas heritage landscapes damaged by the September 2023 Al-Haouz earthquake, together with a Rust + Python implementation of the coupled data approach.
 
